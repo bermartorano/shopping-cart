@@ -1,5 +1,5 @@
 const fetchItem = () => {
-  // seu código aqui
+  // seu código aqui só pro commit. 
 };
 
 if (typeof module !== 'undefined') {
