@@ -8,6 +8,9 @@
  * @param {string} imageSource - URL da imagem.
  * @returns {Element} Elemento de imagem do produto.
  */
+
+const cart = document.querySelector('.cart__items');
+
 const createProductImageElement = (imageSource) => {
   const img = document.createElement('img');
   img.className = 'item__image';
@@ -68,16 +71,28 @@ const createCartItemElement = ({ id, title, price }) => {
   const li = document.createElement('li');
   li.className = 'cart__item';
   li.innerText = `ID: ${id} | TITLE: ${title} | PRICE: $${price}`;
-  li.addEventListener('click', cartItemClickListener);
+  // li.addEventListener('click', cartItemClickListener);
   return li;
 };
 
+const addItemToCart = async (event) => {
+  const itemId = event.target.parentElement.children[0].innerText;
+  const request = await fetchItem(itemId);
+  const cartItem = createCartItemElement(request);
+  cart.appendChild(cartItem);
+};
+
 window.onload = () => {
-  fetchProducts('computador').then(({ results }) => {
-    results.forEach((value) => {
-      const sectionItems = document.getElementsByClassName('items')[0];
-      const itemCriado = createProductItemElement(value);
-      sectionItems.appendChild(itemCriado);
+  fetchProducts('computador')
+    .then(({ results }) => {
+      results.forEach((value) => {
+        const sectionItems = document.getElementsByClassName('items')[0];
+        const itemCriado = createProductItemElement(value);
+        sectionItems.appendChild(itemCriado);
+      });
+    })
+    .then(() => {
+      const sectionButttons = document.querySelectorAll('.item__add');
+      sectionButttons.forEach((value) => value.addEventListener('click', addItemToCart));
     });
-  });
 };
