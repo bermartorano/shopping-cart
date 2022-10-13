@@ -72,4 +72,12 @@ const createCartItemElement = ({ id, title, price }) => {
   return li;
 };
 
-window.onload = () => { };
+window.onload = () => {
+  fetchProducts('computador').then(({ results }) => {
+    results.forEach((value) => {
+      const sectionItems = document.getElementsByClassName('items')[0];
+      const itemCriado = createProductItemElement(value);
+      sectionItems.appendChild(itemCriado);
+    });
+  });
+};
