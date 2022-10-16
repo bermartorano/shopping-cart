@@ -1,22 +1,12 @@
 // Esse tipo de comentário que estão antes de todas as funções são chamados de JSdoc,
 // experimente passar o mouse sobre o nome das funções e verá que elas possuem descrições! 
-
 // Fique a vontade para modificar o código já escrito e criar suas próprias funções!
 
 /**
  * Função responsável por criar e retornar o elemento de imagem do produto.
  * @param {string} imageSource - URL da imagem.
  * @returns {Element} Elemento de imagem do produto.
- */
-
-const cart = document.querySelector('.cart__items');
-
-const createProductImageElement = (imageSource) => {
-  const img = document.createElement('img');
-  img.className = 'item__image';
-  img.src = imageSource;
-  return img;
-};
+*/
 
 /**
  * Função responsável por criar e retornar qualquer elemento.
@@ -25,6 +15,17 @@ const createProductImageElement = (imageSource) => {
  * @param {string} innerText - Texto do elemento.
  * @returns {Element} Elemento criado.
  */
+
+ const sectionItems = document.getElementsByClassName('items')[0];
+ const cart = document.querySelector('.cart__items');
+ 
+ const createProductImageElement = (imageSource) => {
+   const img = document.createElement('img');
+   img.className = 'item__image';
+   img.src = imageSource;
+   return img;
+ };
+
 const createCustomElement = (element, className, innerText) => {
   const e = document.createElement(element);
   e.className = className;
@@ -40,14 +41,16 @@ const createCustomElement = (element, className, innerText) => {
  * @param {string} product.thumbnail - URL da imagem do produto.
  * @returns {Element} Elemento de produto.
  */
-const createProductItemElement = ({ id, title, thumbnail }) => {
+
+const createProductItemElement = (object) => {
   const section = document.createElement('section');
   section.className = 'item';
+  const newButton = createCustomElement('button', 'item__add', 'Adicionar ao carrinho!');
 
-  section.appendChild(createCustomElement('span', 'item_id', id));
-  section.appendChild(createCustomElement('span', 'item__title', title));
-  section.appendChild(createProductImageElement(thumbnail));
-  section.appendChild(createCustomElement('button', 'item__add', 'Adicionar ao carrinho!'));
+  section.appendChild(createCustomElement('span', 'item_id', object.id));
+  section.appendChild(createCustomElement('span', 'item__title', object.title));
+  section.appendChild(createProductImageElement(object.thumbnail));
+  section.appendChild(newButton);
 
   return section;
 };
@@ -68,36 +71,88 @@ const getIdFromProductItem = (product) => product.querySelector('span.id').inner
  * @returns {Element} Elemento de um item do carrinho.
  */
 
-function cartItemClickListener(event) {
+function removeItemFromCart(event) {
   event.target.parentElement.removeChild(event.target);
+}
+
+function getItemIdFromCart(param) {
+  const itemDescription = param.innerText;
+  const itemId = itemDescription.split(' ', 2)[1];
+  return itemId;
+}
+
+function removeItemFromLS(event) {
+  const itemId = getItemIdFromCart(event.target);
+  const LSinfo = getSavedCartItems();
+  LSinfo.forEach((value) => {
+    if (value.id === itemId) {
+      const index = LSinfo.indexOf(value);
+      console.log(index);
+      LSinfo.splice(index, 1);
+      saveCartItems(LSinfo);
+    }
+  });
 }
 
 const createCartItemElement = ({ id, title, price }) => {
   const li = document.createElement('li');
   li.className = 'cart__item';
   li.innerText = `ID: ${id} | TITLE: ${title} | PRICE: $${price}`;
-  li.addEventListener('click', cartItemClickListener);
+  li.addEventListener('click', removeItemFromCart);
+  li.addEventListener('click', removeItemFromLS);
   return li;
 };
 
+const getProductInfo = async (param) => {
+  const itemId = param.parentElement.children[0].innerText;
+  const itemInfo = await fetchItem(itemId);
+  return itemInfo;
+};
+
 const addItemToCart = async (event) => {
-  const itemId = event.target.parentElement.children[0].innerText;
-  const request = await fetchItem(itemId);
-  const cartItem = createCartItemElement(request);
+  const itemInfoRequest = await getProductInfo(event.target);
+  const cartItem = createCartItemElement(itemInfoRequest);
   cart.appendChild(cartItem);
 };
+
+//  NECESSÁRIA A ADIÇÃO DA FUNÇÃO getSavedCartItems.
+const addItemToLocalStorage = async (event) => {
+  const itemInfoRequest = await getProductInfo(event.target);
+  if (localStorage.getItem('cartItems') === null) {
+    const localSVector = [];
+    localSVector.push(itemInfoRequest);
+    saveCartItems(localSVector);
+  } else {
+    const localSVector = JSON.parse(localStorage.getItem('cartItems'));
+    localSVector.push(itemInfoRequest);
+    saveCartItems(localSVector);
+  }
+};
+
+function populateItemCart() {
+  const LSinfo = getSavedCartItems();
+  if (LSinfo !== null && LSinfo.length > 0) {
+    LSinfo.forEach((value) => {
+      const cartItem = createCartItemElement(value);
+      cart.appendChild(cartItem);
+    });
+  }
+}
 
 window.onload = () => {
   fetchProducts('computador')
     .then(({ results }) => {
       results.forEach((value) => {
-        const sectionItems = document.getElementsByClassName('items')[0];
         const itemCriado = createProductItemElement(value);
         sectionItems.appendChild(itemCriado);
       });
     })
     .then(() => {
       const sectionButttons = document.querySelectorAll('.item__add');
-      sectionButttons.forEach((value) => value.addEventListener('click', addItemToCart));
-    });
+      sectionButttons.forEach((value) => {
+        value.addEventListener('click', addItemToCart);
+        value.addEventListener('click', addItemToLocalStorage);
+      });
+    })
+    .then(() => populateItemCart());
 };
