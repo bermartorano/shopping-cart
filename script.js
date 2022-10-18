@@ -176,3 +176,5 @@ window.onload = () => {
     .then(() => clearButton.addEventListener('click', removeAllItemsFromCart))
     .then(() => clearButton.addEventListener('click', clearLS));
 };
+
+// COMENTÁRIO SÓ PARA DAR PUSH
