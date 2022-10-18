@@ -19,6 +19,7 @@
  const sectionItems = document.getElementsByClassName('items')[0];
  const cart = document.querySelector('.cart__items');
  const totalToPay = document.querySelector('.total-price');
+ const clearButton = document.querySelector('.empty-cart');
  
  const createProductImageElement = (imageSource) => {
    const img = document.createElement('img');
@@ -76,6 +77,16 @@ function removeItemFromCart(event) {
   event.target.parentElement.removeChild(event.target);
 }
 
+function removeAllItemsFromCart() {
+  const cartItems = document.querySelectorAll('.cart__item');
+  cartItems.forEach((value) => value.remove());
+  totalToPay.innerText = 0;
+}
+
+function clearLS() {
+  saveCartItems([]);
+}
+
 function getItemIdFromCart(param) {
   const itemDescription = param.innerText;
   const itemId = itemDescription.split(' ', 2)[1];
@@ -96,7 +107,6 @@ function removeItemFromLS(event) {
 function totalPriceCalculator() {
   const localStorageArray = getSavedCartItems();
   const soma = localStorageArray.reduce((acc, cur) => acc + cur.price, 0);
-  console.log('A soma dos preços é: ', soma);
   totalToPay.innerText = `${soma}`;
 }
 
@@ -137,7 +147,7 @@ const addItemToLocalStorage = async (event) => {
   }
 };
 
-function populateItemCartFromLs() {
+function populateCartFromLs() {
   const LSinfo = getSavedCartItems();
   if (LSinfo !== null && LSinfo.length > 0) {
     LSinfo.forEach((value) => {
@@ -162,5 +172,7 @@ window.onload = () => {
         value.addEventListener('click', addItemToLocalStorage);
       });
     })
-    .then(() => populateItemCartFromLs());
+    .then(() => populateCartFromLs())
+    .then(() => clearButton.addEventListener('click', removeAllItemsFromCart))
+    .then(() => clearButton.addEventListener('click', clearLS));
 };
