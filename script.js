@@ -18,7 +18,7 @@
 
  const sectionItems = document.getElementsByClassName('items')[0];
  const cart = document.querySelector('.cart__items');
- const totalToPay = document.querySelector('#total-price');
+ const totalToPay = document.querySelector('.total-price');
  
  const createProductImageElement = (imageSource) => {
    const img = document.createElement('img');
@@ -97,7 +97,7 @@ function totalPriceCalculator() {
   const localStorageArray = getSavedCartItems();
   const soma = localStorageArray.reduce((acc, cur) => acc + cur.price, 0);
   console.log('A soma dos preços é: ', soma);
-  totalToPay.innerText = `O total a pagar é: R$ ${soma}`;
+  totalToPay.innerText = `${soma}`;
 }
 
 const createCartItemElement = ({ id, title, price }) => {
