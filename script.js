@@ -18,6 +18,7 @@
 
  const sectionItems = document.getElementsByClassName('items')[0];
  const cart = document.querySelector('.cart__items');
+ const totalToPay = document.querySelector('#total-price');
  
  const createProductImageElement = (imageSource) => {
    const img = document.createElement('img');
@@ -84,14 +85,19 @@ function getItemIdFromCart(param) {
 function removeItemFromLS(event) {
   const itemId = getItemIdFromCart(event.target);
   const LSinfo = getSavedCartItems();
-  LSinfo.forEach((value) => {
-    if (value.id === itemId) {
-      const index = LSinfo.indexOf(value);
-      console.log(index);
-      LSinfo.splice(index, 1);
-      saveCartItems(LSinfo);
-    }
-  });
+  if (LSinfo.some((value) => value.id === itemId)) {
+    const itemToRemove = LSinfo.find((value) => value.id === itemId);
+    const index = LSinfo.indexOf(itemToRemove);
+    LSinfo.splice(index, 1);
+    saveCartItems(LSinfo);
+  }
+}
+
+function totalPriceCalculator() {
+  const localStorageArray = getSavedCartItems();
+  const soma = localStorageArray.reduce((acc, cur) => acc + cur.price, 0);
+  console.log('A soma dos preços é: ', soma);
+  totalToPay.innerText = `O total a pagar é: R$ ${soma}`;
 }
 
 const createCartItemElement = ({ id, title, price }) => {
@@ -100,6 +106,7 @@ const createCartItemElement = ({ id, title, price }) => {
   li.innerText = `ID: ${id} | TITLE: ${title} | PRICE: $${price}`;
   li.addEventListener('click', removeItemFromCart);
   li.addEventListener('click', removeItemFromLS);
+  li.addEventListener('click', totalPriceCalculator);
   return li;
 };
 
@@ -115,21 +122,22 @@ const addItemToCart = async (event) => {
   cart.appendChild(cartItem);
 };
 
-//  NECESSÁRIA A ADIÇÃO DA FUNÇÃO getSavedCartItems.
 const addItemToLocalStorage = async (event) => {
   const itemInfoRequest = await getProductInfo(event.target);
   if (localStorage.getItem('cartItems') === null) {
     const localSVector = [];
     localSVector.push(itemInfoRequest);
     saveCartItems(localSVector);
+    totalPriceCalculator();
   } else {
     const localSVector = JSON.parse(localStorage.getItem('cartItems'));
     localSVector.push(itemInfoRequest);
     saveCartItems(localSVector);
+    totalPriceCalculator();
   }
 };
 
-function populateItemCart() {
+function populateItemCartFromLs() {
   const LSinfo = getSavedCartItems();
   if (LSinfo !== null && LSinfo.length > 0) {
     LSinfo.forEach((value) => {
@@ -154,5 +162,5 @@ window.onload = () => {
         value.addEventListener('click', addItemToLocalStorage);
       });
     })
-    .then(() => populateItemCart());
+    .then(() => populateItemCartFromLs());
 };
